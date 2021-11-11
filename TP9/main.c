@@ -1,15 +1,24 @@
-// pour les tests : vérifier les free (faut pas qu'ils soient nuls), et vérifier les nul
+// pour les tests : vérifier les free (faut pas qu'ils soient nuls), et vérifier les null
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
 
-struct Cell
-{
+struct Cell {
     int value;
     struct Cell* next;
 };
+
+
+struct List {
+    struct Cell* head;
+    struct Cell* tail;
+    int size;
+};
+
+
+
 
 struct Cell* createCell(int val) {
     struct Cell* ptr = (struct Cell*) malloc(sizeof(struct Cell));
@@ -60,6 +69,21 @@ struct Cell* addItem(struct Cell* head, int value, unsigned int position, bool* 
     *valid = true;
     return head;
 }
+unsigned int getNbItems(struct Cell* head)
+{
+    struct Cell *ptr = head;
+    unsigned int i = 0;
+    if (ptr != NULL)
+    {
+        while (ptr != NULL)
+        {
+            ptr = ptr->next;
+            i++;
+        }
+    }
+    return i;
+}
+
 struct Cell* deleteItem(struct Cell* head, unsigned int position, bool* valid)
 {
     struct Cell* ptr = head;
@@ -77,9 +101,13 @@ struct Cell* deleteItem(struct Cell* head, unsigned int position, bool* valid)
             *valid = true;
         }
     }
-    if (position > 0) // voir brouillon !!!!
+    if (position > 0)
     {
         if (tmp == NULL)
+        {
+            *valid = false;
+        }
+        if (position > getNbItems(head))
         {
             *valid = false;
         }
@@ -87,14 +115,16 @@ struct Cell* deleteItem(struct Cell* head, unsigned int position, bool* valid)
         {
             for (int counter = 0; counter < position; counter++)
             {
-                ptr=ptr->next;
+                tmp = tmp->next;
             }
             for (int counter = 0; counter < position - 1; counter++)
             {
-                tmp=tmp->next;
+                ptr = ptr->next;
             }
-            free(ptr);
+            tmp = ptr->next;
+            ptr->next = tmp->next;
             tmp->next = NULL;
+            free(tmp);
 
             *valid = true;
         }
@@ -127,54 +157,31 @@ void deleteList(struct Cell* head)
 
 struct Cell* createListFromTab(int T[], unsigned int size, bool* valid)
 {
-
     struct Cell* head = NULL;
-    struct Cell* ptr = head;
-    *valid = true;
-    if (size == 0)
-    {
-        head == NULL;
-    }
     if (size != 0) {
         for (int counter = 0; counter < size; counter++) {
-            ptr->next = createCell(T[counter]);
-            ptr = ptr->next;
+            head = addItem(head, T[counter], counter, &valid);
         }
     }
+    *valid = true;
     return head;
 }
 
 void displayList(struct Cell* head)
 {
-    struct Cell* ptr = head;
-    if (ptr != NULL)
+    if (head != NULL)
     {
-        while (ptr != NULL)
+        while (head != NULL)
         {
-            printf("%d -> ", ptr->value);
-            ptr = ptr->next;
+            printf("%d ", head->value);
+            head = head->next;
         }
-        printf("%d", ptr->value);
+        printf("\n");
     }
     else
     {
-        printf("%d", ptr->value);
+        printf("La chaîne est vide\n");
     }
-}
-
-unsigned int getNbItems(struct Cell* head)
-{
-    struct Cell *ptr = head;
-    unsigned int i = 0;
-    if (ptr != NULL)
-    {
-        while (ptr != NULL)
-        {
-            ptr = ptr->next;
-            i++;
-        }
-    }
-    return i;
 }
 
 int getItem(struct Cell* head, unsigned int position, bool* valid)
@@ -182,13 +189,17 @@ int getItem(struct Cell* head, unsigned int position, bool* valid)
     struct Cell* ptr = head;
     unsigned int i = 0;
     int item;
-    *valid = true;
+    *valid = false;
     while (ptr != NULL)
     {
         ptr = ptr->next;
         i++;
     }
     ptr = head;
+    if (position >= getNbItems(head))
+    {
+        return -1;
+    }
     if (position <= i)
     {
         for (int counter = 0; counter < position; counter++)
@@ -196,6 +207,7 @@ int getItem(struct Cell* head, unsigned int position, bool* valid)
             ptr = ptr->next;
         }
         item = ptr->value;
+        *valid = true;
     }
     else
     {
@@ -229,6 +241,7 @@ struct Cell* listTab(int T[], unsigned int size){
     }
     return head;
 }
+
 
 void tests(){
 
